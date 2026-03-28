@@ -1,0 +1,200 @@
+{% extends 'base.html' %}
+{% block title %}{{ author_name }} — The Journal{% endblock %}
+
+{% block extra_css %}
+<style>
+    .author-hero {
+        background: linear-gradient(135deg, #f0f7f4, #faf9f6);
+        border-bottom: 1px solid var(--border);
+        padding: 4rem 2rem;
+    }
+
+    .author-hero-inner {
+        max-width: 760px;
+        margin: 0 auto;
+        display: flex;
+        gap: 2rem;
+        align-items: center;
+    }
+
+    .author-big-avatar {
+        width: 90px;
+        height: 90px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--accent), #1f4d38);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-family: 'Fraunces', serif;
+        font-weight: 900;
+        font-size: 2.2rem;
+        flex-shrink: 0;
+        box-shadow: 0 4px 20px rgba(42,96,73,0.25);
+    }
+
+    .author-hero-info h1 {
+        font-family: 'Fraunces', serif;
+        font-size: 2.2rem;
+        font-weight: 900;
+        letter-spacing: -0.03em;
+        margin-bottom: 0.5rem;
+    }
+
+    .author-hero-bio {
+        color: var(--muted);
+        font-size: 0.95rem;
+        line-height: 1.75;
+        margin-bottom: 1rem;
+    }
+
+    .author-stats {
+        display: flex;
+        gap: 1.5rem;
+    }
+
+    .author-stat {
+        text-align: center;
+    }
+
+    .author-stat-num {
+        font-family: 'Fraunces', serif;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--accent);
+        line-height: 1;
+    }
+
+    .author-stat-label {
+        font-size: 0.72rem;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+    }
+
+    .author-posts {
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 3rem 2rem;
+    }
+
+    .author-posts h2 {
+        font-family: 'Fraunces', serif;
+        font-size: 1.3rem;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .author-post-item {
+        display: flex;
+        gap: 1.25rem;
+        padding: 1.25rem 0;
+        border-bottom: 1px solid var(--border);
+        transition: background 0.2s;
+        align-items: flex-start;
+    }
+
+    .author-post-item:last-child { border-bottom: none; }
+
+    .post-number {
+        font-family: 'Fraunces', serif;
+        font-size: 1.8rem;
+        font-weight: 900;
+        color: var(--border);
+        line-height: 1;
+        min-width: 2.5rem;
+        text-align: right;
+    }
+
+    .post-item-info h3 {
+        font-family: 'Fraunces', serif;
+        font-size: 1.1rem;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+        margin-bottom: 0.35rem;
+    }
+
+    .post-item-info h3 a:hover { color: var(--accent); }
+
+    .post-item-excerpt {
+        font-size: 0.85rem;
+        color: var(--muted);
+        line-height: 1.6;
+        margin-bottom: 0.5rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .post-item-meta {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 0.75rem;
+        color: var(--muted);
+    }
+
+    .empty-author {
+        text-align: center;
+        padding: 3rem;
+        color: var(--muted);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="author-hero animate">
+    <div class="author-hero-inner">
+        <div class="author-big-avatar">{{ author_name|first|upper }}</div>
+        <div class="author-hero-info">
+            <p style="font-size:0.72rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--accent); margin-bottom:0.5rem; font-weight:500;">Author</p>
+            <h1>{{ author_name }}</h1>
+            {% if bio %}
+            <p class="author-hero-bio">{{ bio }}</p>
+            {% else %}
+            <p class="author-hero-bio">Writer at The Journal.</p>
+            {% endif %}
+            <div class="author-stats">
+                <div class="author-stat">
+                    <div class="author-stat-num">{{ post_count }}</div>
+                    <div class="author-stat-label">Article{{ post_count|pluralize }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="author-posts">
+    <h2>All Articles by {{ author_name }}</h2>
+
+    {% if posts %}
+        {% for post in posts %}
+        <div class="author-post-item animate delay-{{ forloop.counter }}">
+            <div class="post-number">{{ forloop.counter|stringformat:"02d" }}</div>
+            <div class="post-item-info">
+                {% if post.category %}<a href="{% url 'category_view' post.category.slug %}" class="category-badge" style="font-size:0.65rem; margin-bottom:0.5rem; display:inline-block;">{{ post.category.name }}</a>{% endif %}
+                <h3><a href="{% url 'post_detail' post.slug %}">{{ post.title }}</a></h3>
+                <p class="post-item-excerpt">{{ post.excerpt }}</p>
+                <div class="post-item-meta">
+                    <span>📅 {{ post.created_at|date:"d M Y" }}</span>
+                    <span>💬 {{ post.comment_count }} comment{{ post.comment_count|pluralize }}</span>
+                    {% for tag in post.tags.all|slice:":2" %}
+                    <a href="{% url 'home' %}?tag={{ tag.slug }}" class="tag-pill">{{ tag.name }}</a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-author">
+            <p>No posts found for this author.</p>
+        </div>
+    {% endif %}
+</div>
+
+{% endblock %}
